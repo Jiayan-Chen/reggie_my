@@ -1,6 +1,7 @@
 package com.chenjiayan.reggie.filter;
 
 import com.alibaba.fastjson.JSON;
+import com.chenjiayan.reggie.common.BaseContext;
 import com.chenjiayan.reggie.common.R;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -41,6 +42,7 @@ public class LoginCheckFilter implements Filter {
         // 如果已经登录，直接放行
         Long id = (Long) request.getSession().getAttribute("employee");
         if(id!=null){
+            BaseContext.setCurrentId(id);
             log.info("用户已登录，放行");
             filterChain.doFilter(request,response);
             return ;

@@ -34,7 +34,16 @@
             maxlength="20"
           />
         </el-form-item>
-
+        <el-form-item
+                label="密码（初始为123456）:"
+                prop="password"
+        >
+          <el-input
+                  v-model="ruleForm.password"
+                  placeholder="请输入密码"
+                  maxlength="30"
+          />
+        </el-form-item>
         <el-form-item
           label="手机号:"
           prop="phone"
@@ -64,6 +73,7 @@
             maxlength="20"
           />
         </el-form-item>
+
         <div class="subBox address">
           <el-form-item>
             <el-button  @click="goBack()">
@@ -110,7 +120,8 @@
                 'phone': '',
                 'sex': '男',
                 'idNumber': '',
-                username: ''
+                'username': '',
+                'password': ''
             }
           }
         },
@@ -147,13 +158,14 @@
                 console.log(res.data)
                 this.ruleForm = res.data
                 this.ruleForm.sex = res.data.sex === '0' ? '女' : '男'
-                // this.ruleForm.password = ''
+                this.ruleForm.password = ''
               } else {
                 this.$message.error(res.msg || '操作失败')
               }
             })
           },
           submitForm (formName, st) {
+            let _this = this;
             this.$refs[formName].validate((valid) => {
               if (valid) {
                 if (this.actionType === 'add') {
@@ -190,8 +202,10 @@
                   }
                   editEmployee(params).then(res => {
                     if (res.code === 1) {
-                      this.$message.success('员工信息修改成功！')
-                      this.goBack()
+                      this.$message.success("员工信息修改成功！")
+                      console.log("账号状态更改成功")
+                      alert("??")
+                      _this.goBack()
                     } else {
                       this.$message.error(res.msg || '操作失败')
                     }
