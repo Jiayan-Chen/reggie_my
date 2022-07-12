@@ -127,6 +127,13 @@ public class EmployeeController {
             // 管理员 管理员的用户名不能修改
             return R.error("管理员的用户名不能修改！");
         }
+        if(StringUtils.isNotBlank(employee.getPassword())){
+            String password = employee.getPassword();
+            password = DigestUtils.md5DigestAsHex(password.getBytes());
+            employee.setPassword(password);
+        }else {
+            employee.setPassword(null);
+        }
         boolean b = employeeService.updateById(employee);
         if(!b) return R.error("修改失败！");
         log.info("修改成功！");

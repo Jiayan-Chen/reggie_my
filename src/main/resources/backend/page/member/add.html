@@ -165,7 +165,6 @@
             })
           },
           submitForm (formName, st) {
-            let _this = this;
             this.$refs[formName].validate((valid) => {
               if (valid) {
                 if (this.actionType === 'add') {
@@ -203,9 +202,7 @@
                   editEmployee(params).then(res => {
                     if (res.code === 1) {
                       this.$message.success("员工信息修改成功！")
-                      console.log("账号状态更改成功")
-                      alert("??")
-                      _this.goBack()
+                      this.goBack()
                     } else {
                       this.$message.error(res.msg || '操作失败')
                     }

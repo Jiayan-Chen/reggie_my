@@ -17,11 +17,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler
     public R<String> exceptionHandler(SQLIntegrityConstraintViolationException ex){
+        log.warn(ex.getMessage());
         // 用户名重复
         if(ex.getMessage().contains("Duplicate entry")){
             String[] s = ex.getMessage().split(" ");
             return R.error(s[2]+"已存在");
         }
         return R.error("网络异常！");
+    }
+
+    @ExceptionHandler
+    public R<String> CustomException(CustomException ex){
+        log.warn(ex.getMessage());
+        return R.error(ex.getMessage());
     }
 }
