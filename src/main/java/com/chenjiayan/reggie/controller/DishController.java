@@ -1,5 +1,6 @@
 package com.chenjiayan.reggie.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.chenjiayan.reggie.common.R;
 import com.chenjiayan.reggie.dto.DishDto;
@@ -102,4 +103,18 @@ public class DishController {
         if(!b) return R.error("删除失败！");
         return R.success("删除成功！");
     }
+
+    /**
+     * 根据分类id查询菜品列表
+     * @param categoryId
+     * @return
+     */
+    @GetMapping("/list")
+    public R<List<Dish>> listR(Long categoryId){
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Dish::getCategoryId,categoryId);
+        List<Dish> list = dishService.list(queryWrapper);
+        return R.success(list);
+    }
+
 }
