@@ -32,8 +32,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     public Boolean delete(Long id) {
         log.info(String.valueOf(id));
         LambdaQueryWrapper<Dish> dishQueryWrapper = new LambdaQueryWrapper<>();
-        dishQueryWrapper.eq(Dish::getCategoryId,id)
-                        .eq(Dish::getStatus,1);
+        dishQueryWrapper.eq(Dish::getCategoryId,id);
         int count = dishService.count(dishQueryWrapper);
         if(count>0){
             // 菜品有关联
@@ -41,8 +40,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         }
 
         LambdaQueryWrapper<Setmeal> setmealQueryWrapper = new LambdaQueryWrapper<>();
-        setmealQueryWrapper.eq(Setmeal::getCategoryId,id)
-                            .eq(Setmeal::getStatus,1);
+        setmealQueryWrapper.eq(Setmeal::getCategoryId,id);
         int count1 = setmealService.count(setmealQueryWrapper);
         if(count1>0){
             // 套餐有关联

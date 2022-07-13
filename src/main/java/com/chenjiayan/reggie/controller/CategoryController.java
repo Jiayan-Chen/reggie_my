@@ -10,6 +10,8 @@ import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("category")
 @Slf4j
@@ -75,5 +77,19 @@ public class CategoryController {
             return R.error("删除失败!");
         }
         return R.success("删除成功！");
+    }
+
+    /**
+     * 通过类型获取该类的列表
+     * @param type
+     * @return
+     */
+    @GetMapping("/list")
+    public R<List<Category>> listR(int type){
+        LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Category::getType,type);
+        queryWrapper.orderByAsc(Category::getSort);
+        List<Category> list = categoryService.list(queryWrapper);
+        return R.success(list);
     }
 }
