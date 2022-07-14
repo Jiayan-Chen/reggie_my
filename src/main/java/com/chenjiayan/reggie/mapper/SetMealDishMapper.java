@@ -1,9 +1,9 @@
 package com.chenjiayan.reggie.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.chenjiayan.reggie.entity.Setmeal;
+import com.chenjiayan.reggie.entity.SetmealDish;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface SetmealMapper extends BaseMapper<Setmeal> {
+public interface SetMealDishMapper extends BaseMapper<SetmealDish> {
 }
