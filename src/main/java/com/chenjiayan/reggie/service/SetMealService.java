@@ -44,4 +44,5 @@ public interface SetMealService extends IService<Setmeal> {
      * @return
      */
     Boolean deleteAllMessage(List<Long> ids);
+
 }

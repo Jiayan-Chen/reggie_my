@@ -1,6 +1,7 @@
 package com.chenjiayan.reggie.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.chenjiayan.reggie.common.BaseContext;
 import com.chenjiayan.reggie.common.R;
 import com.chenjiayan.reggie.entity.User;
 import com.chenjiayan.reggie.service.UserService;
@@ -58,6 +59,7 @@ public class UserController {
             log.info("新用户！");
             User user1 = new User();
             user1.setPhone(phone);
+            userService.save(user1);
             session.setAttribute("user",user1.getId());
         }else{
             log.info("旧用户！");
@@ -71,5 +73,14 @@ public class UserController {
         return R.success("登录成功！");
     }
 
-
+    /**
+     * 退出登录
+     * @param httpSession
+     * @return
+     */
+    @PostMapping("/logout")
+    public R<String> logout(HttpSession httpSession){
+        httpSession.removeAttribute("user");
+        return R.success("退出成功！");
+    }
 }

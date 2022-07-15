@@ -102,6 +102,11 @@ public class SetmealController {
         return R.success("删除套餐成功！");
     }
 
+    /**
+     * 查询分类下的菜品信息
+     * @param setmeal
+     * @return
+     */
     @GetMapping("/list")
     public R<List<Setmeal>> listR(Setmeal setmeal){
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();

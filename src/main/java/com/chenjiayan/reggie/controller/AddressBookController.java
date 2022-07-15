@@ -94,6 +94,9 @@ public class AddressBookController {
         queryWrapper.eq(AddressBook::getUserId,userId)
                 .eq(AddressBook::getIsDefault,1);
         AddressBook addressBook = addressBookService.getOne(queryWrapper);
+        if(addressBook==null){
+            return R.error("请求失败!");
+        }
         return R.success(addressBook);
     }
 

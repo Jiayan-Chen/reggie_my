@@ -46,4 +46,7 @@ public interface DishService extends IService<Dish> {
      * @return
      */
     Boolean deleteAllMessage(List<Long> ids);
+
+    List<DishDto> listDto(Long categoryId);
+
 }
