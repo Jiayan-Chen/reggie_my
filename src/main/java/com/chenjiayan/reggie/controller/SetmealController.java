@@ -1,5 +1,6 @@
 package com.chenjiayan.reggie.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.chenjiayan.reggie.common.R;
 import com.chenjiayan.reggie.dto.SetmealDto;
@@ -99,5 +100,15 @@ public class SetmealController {
         Boolean b = setmealService.deleteAllMessage(ids);
         if(!b) return R.error("删除套餐失败！");
         return R.success("删除套餐成功！");
+    }
+
+    @GetMapping("/list")
+    public R<List<Setmeal>> listR(Setmeal setmeal){
+        LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(setmeal.getCategoryId()!=null,Setmeal::getCategoryId,setmeal.getCategoryId())
+                        .eq(setmeal.getStatus()!=null,Setmeal::getStatus,setmeal.getStatus())
+                        .orderByDesc(Setmeal::getUpdateTime);
+        List<Setmeal> list = setmealService.list(queryWrapper);
+        return R.success(list);
     }
 }

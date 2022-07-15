@@ -3,6 +3,7 @@ package com.chenjiayan.reggie.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.chenjiayan.reggie.common.CustomException;
 import com.chenjiayan.reggie.dto.SetmealDto;
 import com.chenjiayan.reggie.entity.Category;
 import com.chenjiayan.reggie.entity.Setmeal;
@@ -159,9 +160,19 @@ public class SetMealServiceImpl extends ServiceImpl<SetMealMapper, Setmeal> impl
      * @return
      */
     @Override
+    @Transactional
     public Boolean deleteAllMessage(List<Long> ids) {
+        // 查询是否有售卖中的套餐
+        LambdaQueryWrapper<Setmeal> setmealQueryWrapper = new LambdaQueryWrapper<>();
+        setmealQueryWrapper.in(Setmeal::getId,ids)
+                .eq(Setmeal::getStatus,1);
+        int count = this.count(setmealQueryWrapper);
+        if(count>0){
+            throw new CustomException("套餐正在售卖中，无法删除");
+        }
+
+
         List<Setmeal> setmeals = this.listByIds(ids);
-        LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
         setmeals.stream().map((item)->{
             // 删除照片
             String image = item.getImage();
@@ -169,10 +180,11 @@ public class SetMealServiceImpl extends ServiceImpl<SetMealMapper, Setmeal> impl
             if(file.exists()){
                 file.delete();
             }
-            queryWrapper.eq(SetmealDish::getSetmealId,item.getId()).or();
             return item;
         }).collect(Collectors.toList());
         // 删除套餐菜品信息
+        LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(SetmealDish::getSetmealId,ids);
         boolean remove = setMealDishService.remove(queryWrapper);
         // 删除套餐信息
         boolean b = this.removeByIds(ids);

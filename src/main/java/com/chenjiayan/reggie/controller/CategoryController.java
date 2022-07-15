@@ -81,13 +81,14 @@ public class CategoryController {
 
     /**
      * 通过类型获取该类的列表
-     * @param type
+     * @param category
      * @return
      */
     @GetMapping("/list")
-    public R<List<Category>> listR(int type){
+    public R<List<Category>> listR(Category category){
         LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Category::getType,type);
+        queryWrapper.eq(category.getType()!=null,Category::getType,category.getType());
+        queryWrapper.orderByAsc(Category::getType);
         queryWrapper.orderByAsc(Category::getSort);
         List<Category> list = categoryService.list(queryWrapper);
         return R.success(list);

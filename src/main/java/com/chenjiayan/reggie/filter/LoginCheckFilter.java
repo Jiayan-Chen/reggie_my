@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.chenjiayan.reggie.common.BaseContext;
 import com.chenjiayan.reggie.common.R;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.util.AntPathMatcher;
 
 
@@ -23,7 +22,9 @@ public class LoginCheckFilter implements Filter {
             "/employee/login",
             "/employee/logout",
             "/backend/**",
-            "/front/**"
+            "/front/**",
+            "/user/code",
+            "/user/login"
     };
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
@@ -43,6 +44,13 @@ public class LoginCheckFilter implements Filter {
         Long id = (Long) request.getSession().getAttribute("employee");
         if(id!=null){
             BaseContext.setCurrentId(id);
+            log.info("员工已登录，放行");
+            filterChain.doFilter(request,response);
+            return ;
+        }
+        Long userId = (Long) request.getSession().getAttribute("user");
+        if(userId!=null){
+            BaseContext.setCurrentId(userId);
             log.info("用户已登录，放行");
             filterChain.doFilter(request,response);
             return ;

@@ -157,8 +157,16 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
     @Override
     @Transactional
     public Boolean deleteAllMessage(List<Long> ids) {
+        // 查询是否有售卖中的菜品
+        LambdaQueryWrapper<Dish> dishQueryWrapper = new LambdaQueryWrapper<>();
+        dishQueryWrapper.in(Dish::getId,ids)
+                .eq(Dish::getStatus,1);
+        int count = this.count(dishQueryWrapper);
+        if(count>0){
+            throw new CustomException("当前菜品正在售卖，无法删除！");
+        }
+
         List<Dish> dishes = this.listByIds(ids);
-        LambdaQueryWrapper<DishFlavor> queryWrapper = new LambdaQueryWrapper<>();
         dishes.stream().map((item)->{
             // 删除照片信息
             String image = item.getImage();
@@ -167,10 +175,12 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
                 file.delete();
                 log.info("旧图片已删除！");
             }
-            queryWrapper.eq(DishFlavor::getDishId,item.getId()).or();
+
             return item;
         }).collect(Collectors.toList());
         // 删除口味信息
+        LambdaQueryWrapper<DishFlavor> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(DishFlavor::getDishId,ids);
         dishFlavorService.remove(queryWrapper);
         // 删除菜品信息
         boolean b = this.removeByIds(ids);
