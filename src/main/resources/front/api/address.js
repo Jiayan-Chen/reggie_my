@@ -61,7 +61,7 @@ function  setDefaultAddressApi(data){
 //获取默认地址
 function getDefaultAddressApi() {
   return $axios({
-    'url': `/addressBook/default`,
+    'url': '/addressBook/default',
     'method': 'get',
   })
 }

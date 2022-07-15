@@ -64,8 +64,57 @@ public class AddressBookController {
      */
     @PostMapping
     public R<String> add(@RequestBody AddressBook addressBook){
+        Long userId = BaseContext.getCurrentId();
+        addressBook.setUserId(userId);
         boolean b = addressBookService.save(addressBook);
         if(!b) return R.error("添加地址失败！");
         return R.success("添加地址成功！");
+    }
+
+    /**
+     * 根据id删除收货地址
+     * @param ids
+     * @return
+     */
+    @DeleteMapping
+    public R<String> delete(@RequestBody Long ids){
+        boolean b = addressBookService.removeById(ids);
+        if(!b) return R.error("删除失败！");
+        return R.success("删除成功！");
+    }
+
+    /**
+     * 获取默认地址
+     * @return
+     */
+    @GetMapping("/default")
+    public R<AddressBook> getDefault(){
+        Long userId = BaseContext.getCurrentId();
+        LambdaQueryWrapper<AddressBook> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AddressBook::getUserId,userId)
+                .eq(AddressBook::getIsDefault,1);
+        AddressBook addressBook = addressBookService.getOne(queryWrapper);
+        return R.success(addressBook);
+    }
+
+    /**
+     * 设置为默认地址
+     * @param addressBook
+     * @return
+     */
+    @PutMapping("/default")
+    public R<String> setDefault(@RequestBody AddressBook addressBook){
+        // 将用户的所以地址的isDefault设置为0
+        Long  userId = BaseContext.getCurrentId();
+        LambdaQueryWrapper<AddressBook> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AddressBook::getUserId,userId);
+        AddressBook addressBook1 = new AddressBook();
+        addressBook1.setIsDefault(0);
+        addressBookService.update(addressBook1,queryWrapper);
+        // 再根据前端传过来的id设置默认收货地址
+        addressBook.setIsDefault(1);
+        boolean b = addressBookService.updateById(addressBook);
+        if(!b) return R.error("设置失败！");
+        return R.success("设置成功！");
     }
 }
