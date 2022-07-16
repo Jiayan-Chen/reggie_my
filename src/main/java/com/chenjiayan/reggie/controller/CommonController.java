@@ -3,6 +3,9 @@ package com.chenjiayan.reggie.controller;
 import com.chenjiayan.reggie.common.R;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/common")
 @Slf4j
+@CacheConfig(cacheNames = "commonCache")
 public class CommonController {
 
     @Value("${reggie.imgPath}")
@@ -28,6 +32,7 @@ public class CommonController {
      * @return
      */
     @PostMapping("/upload")
+    @CacheEvict(allEntries = true)
     public R<String> upload(MultipartFile file){
         // 生成文件名
         String originalFilename = file.getOriginalFilename();
@@ -57,6 +62,7 @@ public class CommonController {
      * @param response
      */
     @GetMapping("/download")
+    @Cacheable(key = "#name")
     public void download(String name, HttpServletResponse response){
         try {
             FileInputStream fileInputStream = new FileInputStream(BasePath + name);

@@ -7,11 +7,15 @@ import com.chenjiayan.reggie.entity.Orders;
 import com.chenjiayan.reggie.service.OrdersService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/order")
 @Slf4j
+@CacheConfig(cacheNames = "orderCache")
 public class OrdersController {
     @Autowired
     private OrdersService ordersService;
@@ -22,6 +26,7 @@ public class OrdersController {
      * @return
      */
     @PostMapping("/submit")
+    @CacheEvict(allEntries = true)
     public R<String> submit(@RequestBody Orders orders){
         Boolean b = ordersService.submitOrder(orders);
         if(!b) return R.error("提交失败！");
@@ -34,6 +39,7 @@ public class OrdersController {
      * @param pageSize
      * @return
      */
+    @Cacheable(key = "#page+'_'+#pageSize")
     @GetMapping("/userPage")
     public R<Page<OrdersDto>> pageR(int page,int pageSize){
         Page<OrdersDto> pageDto = ordersService.pageDto(page,pageSize);

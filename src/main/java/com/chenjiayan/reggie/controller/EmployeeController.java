@@ -8,6 +8,9 @@ import com.chenjiayan.reggie.service.EmployeeService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/employee")
 @Slf4j
+@CacheConfig(cacheNames = "employeeCache")
 public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
@@ -73,6 +77,7 @@ public class EmployeeController {
      * @return
      */
     @PostMapping
+    @CacheEvict(allEntries = true)
     public R<String> save(@RequestBody Employee employee){
         log.info(employee.toString());
         // 设置初始密码
@@ -90,6 +95,7 @@ public class EmployeeController {
      * @return
      */
     @GetMapping("/page")
+    @Cacheable(key = "#page+'_'+#pageSize+'_'+#name")
     public R<Page<Employee>> pageR(int page,int pageSize,String name){
         Page<Employee> employeePage = new Page<>(page, pageSize);
         LambdaQueryWrapper<Employee> queryWrapper = new LambdaQueryWrapper<>();
@@ -106,6 +112,7 @@ public class EmployeeController {
      * @return
      */
     @GetMapping("/{id}")
+    @Cacheable(key = "#id")
     public R<Employee> getOneById(@PathVariable Long id){
         //log.info(String.valueOf(id));
         Employee emp = employeeService.getById(id);
@@ -121,6 +128,7 @@ public class EmployeeController {
      * @return
      */
     @PutMapping
+    @CacheEvict(allEntries = true)
     public R<String> update(@RequestBody Employee employee){
 
         if(employee.getId()==1 && (!"admin".equals(employee.getUsername()))){

@@ -8,6 +8,9 @@ import com.chenjiayan.reggie.entity.Setmeal;
 import com.chenjiayan.reggie.service.SetMealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +19,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/setmeal")
 @Slf4j
+@CacheConfig(cacheNames = "setmealCache")
 public class SetmealController {
     @Autowired
     private SetMealService setmealService;
@@ -26,6 +30,7 @@ public class SetmealController {
      * @return
      */
     @PostMapping
+    @CacheEvict(allEntries = true)
     public R<String> add(@RequestBody SetmealDto setmealDto){
         Boolean b = setmealService.addSetMeal(setmealDto);
         if(!b){
@@ -42,7 +47,9 @@ public class SetmealController {
      * @return
      */
     @GetMapping("/page")
+    @Cacheable(key = "#page+'_'+#pageSize+'_'+#name")
     public R<Page<SetmealDto>> pageR(int page,int pageSize,String name){
+        log.warn("没有使用Cache!");
         Page<SetmealDto>  pageDto = setmealService.pageDto(page,pageSize,name);
         return R.success(pageDto);
     }
@@ -53,6 +60,7 @@ public class SetmealController {
      * @return
      */
     @GetMapping("/{id}")
+    @Cacheable(key = "#id")
     public R<SetmealDto> getOne(@PathVariable Long id){
         SetmealDto setmealDto = setmealService.getOneById(id);
         if(setmealDto == null) R.error("请求失败！");
@@ -65,6 +73,7 @@ public class SetmealController {
      * @return
      */
     @PutMapping
+    @CacheEvict(allEntries = true)
     public R<String> update(@RequestBody SetmealDto setmealDto){
         Boolean b = setmealService.myUpdate(setmealDto);
         if(!b) return R.error("修改套餐失败！");
@@ -78,6 +87,7 @@ public class SetmealController {
      * @return
      */
     @PostMapping("/status/{status}")
+    @CacheEvict(allEntries = true)
     public R<String> status(@PathVariable int status,@RequestParam List<Long> ids){
         List<Setmeal> setmeals = ids.stream().map((item)->{
             Setmeal setmeal = new Setmeal();
@@ -96,6 +106,7 @@ public class SetmealController {
      * @return
      */
     @DeleteMapping
+    @CacheEvict(allEntries = true)
     public R<String> delete(@RequestParam List<Long> ids){
         Boolean b = setmealService.deleteAllMessage(ids);
         if(!b) return R.error("删除套餐失败！");
@@ -108,6 +119,7 @@ public class SetmealController {
      * @return
      */
     @GetMapping("/list")
+    @Cacheable(key = "#setmeal.getCategoryId()")
     public R<List<Setmeal>> listR(Setmeal setmeal){
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(setmeal.getCategoryId()!=null,Setmeal::getCategoryId,setmeal.getCategoryId())

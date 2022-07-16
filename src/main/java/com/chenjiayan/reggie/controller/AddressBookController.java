@@ -7,6 +7,8 @@ import com.chenjiayan.reggie.entity.AddressBook;
 import com.chenjiayan.reggie.service.AddressBookService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +25,7 @@ public class AddressBookController {
      * @return
      */
     @GetMapping("/list")
+    @Cacheable(keyGenerator = "myKeyGenerator")
     public R<List<AddressBook>> listR(){
         // 获取用户id
         Long userId = BaseContext.getCurrentId();
@@ -39,6 +42,7 @@ public class AddressBookController {
      * @return
      */
     @GetMapping("/{id}")
+    @Cacheable(key = "#id")
     public R<AddressBook> getAddressBook(@PathVariable Long id){
         AddressBook addressBook = addressBookService.getById(id);
         if(addressBook==null) R.error("请求错误！");
@@ -51,6 +55,7 @@ public class AddressBookController {
      * @return
      */
     @PutMapping
+    @CacheEvict(allEntries = true)
     public R<String> update(@RequestBody AddressBook addressBook){
         boolean b = addressBookService.updateById(addressBook);
         if(!b) return R.error("修改地址成功!");
@@ -63,6 +68,7 @@ public class AddressBookController {
      * @return
      */
     @PostMapping
+    @CacheEvict(allEntries = true)
     public R<String> add(@RequestBody AddressBook addressBook){
         // 如果收货地址只有一个，就将其设置为默认地址
         Long userId = BaseContext.getCurrentId();
@@ -85,6 +91,7 @@ public class AddressBookController {
      * @return
      */
     @DeleteMapping
+    @CacheEvict(allEntries = true)
     public R<String> delete(@RequestBody Long ids){
         boolean b = addressBookService.removeById(ids);
         if(!b) return R.error("删除失败！");
@@ -95,6 +102,7 @@ public class AddressBookController {
      * 获取默认地址
      * @return
      */
+    @Cacheable(keyGenerator = "myKeyGenerator")
     @GetMapping("/default")
     public R<AddressBook> getDefault(){
         Long userId = BaseContext.getCurrentId();
@@ -114,6 +122,7 @@ public class AddressBookController {
      * @return
      */
     @PutMapping("/default")
+    @CacheEvict(allEntries = true)
     public R<String> setDefault(@RequestBody AddressBook addressBook){
         // 将用户的所以地址的isDefault设置为0
         Long  userId = BaseContext.getCurrentId();

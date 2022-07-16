@@ -6,8 +6,10 @@ import com.chenjiayan.reggie.common.R;
 import com.chenjiayan.reggie.entity.Category;
 import com.chenjiayan.reggie.service.CategoryService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("category")
 @Slf4j
+@CacheConfig(cacheNames = "category")
 public class CategoryController {
     @Autowired
     private CategoryService categoryService;
@@ -25,6 +28,7 @@ public class CategoryController {
      * @return
      */
     @PostMapping
+    @CacheEvict(allEntries = true)
     public R<String> add(@RequestBody Category category){
         boolean save = categoryService.save(category);
         if(!save){
@@ -40,6 +44,7 @@ public class CategoryController {
      * @return
      */
     @GetMapping("/page")
+    @Cacheable(key = "#page+'_'+#pageSize")
     public R<Page<Category>> getR(int page,int pageSize){
         Page<Category> categoryPage = new Page<>(page, pageSize);
         LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
@@ -57,6 +62,7 @@ public class CategoryController {
      * @return
      */
     @PutMapping
+    @CacheEvict(allEntries = true)
     public R<String> update(@RequestBody Category category){
         boolean b = categoryService.updateById(category);
         if(!b){
@@ -71,6 +77,7 @@ public class CategoryController {
      * @return
      */
     @DeleteMapping
+    @CacheEvict(allEntries = true)
     public R<String> delete(Long ids){
         Boolean b = categoryService.delete(ids);
         if(!b){
@@ -85,6 +92,7 @@ public class CategoryController {
      * @return
      */
     @GetMapping("/list")
+    @Cacheable(keyGenerator = "myKeyGenerator")
     public R<List<Category>> listR(Category category){
         LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(category.getType()!=null,Category::getType,category.getType());

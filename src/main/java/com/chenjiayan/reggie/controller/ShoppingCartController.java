@@ -7,25 +7,31 @@ import com.chenjiayan.reggie.entity.ShoppingCart;
 import com.chenjiayan.reggie.service.ShoppingCartService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
-
-import java.beans.beancontext.BeanContext;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
 @RequestMapping("/shoppingCart")
 @Slf4j
-public class ShoppingCartController {
+@CacheConfig(cacheNames = "shoppingCartCache")
+public class ShoppingCartController implements Serializable {
     @Autowired
     private ShoppingCartService shoppingCartService;
+
 
     /**
      * 获取购物车列表
      * @return
      */
     @GetMapping("/list")
+    @Cacheable(keyGenerator = "myKeyGenerator")
     public R<List<ShoppingCart>> listR(){
+        log.info("没有使用redis");
         LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ShoppingCart::getUserId,BaseContext.getCurrentId());
         List<ShoppingCart> list = shoppingCartService.list(queryWrapper);
@@ -38,6 +44,7 @@ public class ShoppingCartController {
      * @return
      */
     @PostMapping("/add")
+    @CacheEvict(allEntries = true)
     public R<ShoppingCart> addCart(@RequestBody ShoppingCart shoppingCart){
         Long userId = BaseContext.getCurrentId();
         shoppingCart.setUserId(userId);
@@ -68,6 +75,7 @@ public class ShoppingCartController {
      * @return
      */
     @PostMapping("/sub")
+    @CacheEvict(allEntries = true)
     public R<ShoppingCart> updateCart(@RequestBody ShoppingCart shoppingCart){
         Long userId = BaseContext.getCurrentId();
         shoppingCart.setUserId(userId);
@@ -94,6 +102,7 @@ public class ShoppingCartController {
      * @return
      */
     @DeleteMapping("/clean")
+    @CacheEvict(allEntries = true)
     public R<String> clean(){
         Long userId = BaseContext.getCurrentId();
         LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();

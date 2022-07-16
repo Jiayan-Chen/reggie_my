@@ -46,7 +46,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
     @Transactional
     public Boolean add(DishDto dishDto) {
         // 保存菜品
-        this.save(dishDto);
+        boolean b = this.save(dishDto);
         // 菜品id
         Long dishId = dishDto.getId();
         // 设置菜品口味的菜品id
@@ -56,7 +56,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
             return item;
         }).collect(Collectors.toList());
         // 保存菜品口味
-        boolean b = dishFlavorService.saveBatch(flavors);
+        dishFlavorService.saveBatch(flavors);
         return b;
     }
 
@@ -131,7 +131,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
                 log.info("旧图片已删除！");
             }
         }
-        this.updateById(dishDto);
+        boolean b = this.updateById(dishDto);
         Long dishId = dishDto.getId();
         //删除口味信息
         LambdaQueryWrapper<DishFlavor> dishFlavorQueryWrapper = new LambdaQueryWrapper<>();
@@ -145,7 +145,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
             return item;
         }).collect(Collectors.toList());
 
-        boolean b = dishFlavorService.saveBatch(flavors);
+        dishFlavorService.saveBatch(flavors);
         return b;
     }
 
@@ -188,6 +188,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
     }
 
     @Override
+    @Transactional
     public List<DishDto> listDto(Long categoryId) {
         LambdaQueryWrapper<Dish> dishQueryWrapper = new LambdaQueryWrapper<>();
         dishQueryWrapper.eq(Dish::getCategoryId,categoryId);

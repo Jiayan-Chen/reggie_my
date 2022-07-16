@@ -9,6 +9,8 @@ import com.chenjiayan.reggie.utils.ValidateCodeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.server.Session;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/user")
@@ -27,17 +30,22 @@ public class UserController {
     @Autowired
     private EmailUtil emailUtil;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     @PostMapping("/code")
-    public R<String> sendCode(@RequestBody User user, HttpSession session){
+    public R<String> sendCode(@RequestBody User user){
         if(StringUtils.isNotBlank(user.getEmail())){
             String code = String.valueOf(ValidateCodeUtils.generateValidateCode(4));
-            session.setAttribute(user.getEmail(),code);
+            //session.setAttribute(user.getEmail(),code);
+            // 将生成的验证码缓存到Redis中，并设置有效期为5分钟
+            redisTemplate.opsForValue().set(user.getEmail(),code,5, TimeUnit.MINUTES);
             log.info("验证码为："+code);
             //发送验证码
-            emailUtil.sendMessage(
-                    user.getEmail(),
-                    "【菩提阁餐厅】验证码",
-                    "您好！本次验证码为 "+code+" ,请在5分钟内完成操作。如非本人操作，请忽略。");
+//            emailUtil.sendMessage(
+//                    user.getEmail(),
+//                    "【菩提阁餐厅】验证码",
+//                    "您好！本次验证码为 "+code+" ,请在5分钟内完成操作。如非本人操作，请忽略。");
 
             return R.success("验证码已发送");
         }
@@ -48,15 +56,13 @@ public class UserController {
     public R<String> login(@RequestBody Map map, HttpSession session){
         // 通过邮箱获取session中保存的验证码
         String email = (String) map.get("email");
-        System.out.println("###"+email);
-        String code = (String) session.getAttribute(email);
-        System.out.println("得到的的验证码为："+code);
+        //String code = (String) session.getAttribute(email);
+        String code = (String) redisTemplate.opsForValue().get(email);
         if(StringUtils.isBlank(code)){
             // 验证码为空
             return R.error("验证码输入错误！");
         }
         String code1 = (String)map.get("code");
-        System.out.println("输入的验证码为："+code1);
         if(!code.equals(code1)){
             // 验证码输入错误
             return R.error("验证码输入错误！");
