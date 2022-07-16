@@ -42,10 +42,10 @@ public class UserController {
             redisTemplate.opsForValue().set(user.getEmail(),code,5, TimeUnit.MINUTES);
             log.info("验证码为："+code);
             //发送验证码
-//            emailUtil.sendMessage(
-//                    user.getEmail(),
-//                    "【菩提阁餐厅】验证码",
-//                    "您好！本次验证码为 "+code+" ,请在5分钟内完成操作。如非本人操作，请忽略。");
+            emailUtil.sendMessage(
+                    user.getEmail(),
+                    "【菩提阁餐厅】验证码",
+                    "您好！本次验证码为 "+code+" ,请在5分钟内完成操作。如非本人操作，请忽略。");
 
             return R.success("验证码已发送");
         }

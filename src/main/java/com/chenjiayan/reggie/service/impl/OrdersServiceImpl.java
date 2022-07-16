@@ -12,11 +12,11 @@ import com.chenjiayan.reggie.service.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
+import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 
@@ -41,6 +41,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
      * @return
      */
     @Override
+    @Transactional
     public Boolean submitOrder(Orders orders) {
         String number = IdWorker.getIdStr();
         orders.setNumber(number);
@@ -94,6 +95,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
      * @return
      */
     @Override
+    @Transactional
     public Page<OrdersDto> pageDto(int page, int pageSize) {
         Page<Orders> ordersPage = new Page<>(page, pageSize);
         Page<OrdersDto> ordersDtoPage = new Page<>(page, pageSize);
@@ -114,6 +116,42 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
             return ordersDto;
         }).collect(Collectors.toList());
 
+        ordersDtoPage.setRecords(dtoList);
+        return ordersDtoPage;
+    }
+
+    /**
+     * 后台分页查询
+     * @param page
+     * @param pageSize
+     * @param number
+     * @param beginTime
+     * @param endTime
+     * @return
+     */
+    @Override
+    @Transactional
+    public Page<OrdersDto> pageAllDto(int page, int pageSize, Long number, String beginTime, String endTime) {
+        Page<Orders> ordersPage = new Page<>(page, pageSize);
+        Page<OrdersDto> ordersDtoPage = new Page<>(page, pageSize);
+        LambdaQueryWrapper<Orders> ordersQueryWrapper = new LambdaQueryWrapper<>();
+        ordersQueryWrapper
+                .eq(number!=null,Orders::getNumber,number)
+                .between(beginTime!=null&&endTime!=null,Orders::getOrderTime,beginTime,endTime)
+                .orderByDesc(Orders::getCheckoutTime);
+        this.page(ordersPage,ordersQueryWrapper);
+        BeanUtils.copyProperties(ordersPage,ordersDtoPage,"records");
+        List<Orders> records = ordersPage.getRecords();
+        List<OrdersDto> dtoList = records.stream().map((item)->{
+            OrdersDto ordersDto = new OrdersDto();
+            BeanUtils.copyProperties(item,ordersDto);
+            Long ordersId = item.getId();
+            LambdaQueryWrapper<OrderDetail> orderDetailQueryWrapper = new LambdaQueryWrapper<>();
+            orderDetailQueryWrapper.eq(OrderDetail::getOrderId,ordersId);
+            List<OrderDetail> list = orderDetailService.list(orderDetailQueryWrapper);
+            ordersDto.setOrderDetails(list);
+            return ordersDto;
+        }).collect(Collectors.toList());
         ordersDtoPage.setRecords(dtoList);
         return ordersDtoPage;
     }
