@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.beans.beancontext.BeanContext;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -50,9 +51,11 @@ public class ShoppingCartController {
             shoppingCart.setId(shoppingCart1.getId());
             number = shoppingCart1.getNumber()+1;
             shoppingCart1.setNumber(number);
+            shoppingCart1.setCreateTime(LocalDateTime.now());
             shoppingCartService.updateById(shoppingCart1);
         }else{
             shoppingCart.setNumber(1);
+            shoppingCart.setCreateTime(LocalDateTime.now());
             shoppingCartService.save(shoppingCart);
         }
         shoppingCart.setNumber(number);
@@ -80,6 +83,7 @@ public class ShoppingCartController {
             shoppingCartService.removeById(shoppingCart1.getId());
         }else{
             shoppingCart1.setNumber(number-1);
+            shoppingCart1.setCreateTime(LocalDateTime.now());
             shoppingCartService.updateById(shoppingCart1);
         }
         return R.success(shoppingCart);
