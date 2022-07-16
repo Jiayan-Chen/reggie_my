@@ -1,5 +1,6 @@
 package com.chenjiayan.reggie.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -18,6 +19,7 @@ import java.io.File;
  * @Date 2022/4/6 16:06
  */
 @Component
+@Slf4j
 public class EmailUtil {
 
     @Value("${spring.mail.from}") // 从application.yml配置文件中获取
@@ -41,6 +43,7 @@ public class EmailUtil {
         msg.setSubject(subject); // 设置邮件主题
         msg.setText(content); // 设置邮件内容
         // 发送邮件
+        log.warn(String.valueOf(mailSender));
         mailSender.send(msg);
     }
 

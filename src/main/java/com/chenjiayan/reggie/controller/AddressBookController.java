@@ -64,7 +64,15 @@ public class AddressBookController {
      */
     @PostMapping
     public R<String> add(@RequestBody AddressBook addressBook){
+        // 如果收货地址只有一个，就将其设置为默认地址
         Long userId = BaseContext.getCurrentId();
+        LambdaQueryWrapper<AddressBook> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AddressBook::getUserId,userId);
+        int count = addressBookService.count(queryWrapper);
+        if(count == 0){
+            // 无地址，设置为默认地址
+            addressBook.setIsDefault(1);
+        }
         addressBook.setUserId(userId);
         boolean b = addressBookService.save(addressBook);
         if(!b) return R.error("添加地址失败！");

@@ -1,10 +1,10 @@
 package com.chenjiayan.reggie.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.chenjiayan.reggie.common.BaseContext;
 import com.chenjiayan.reggie.common.R;
 import com.chenjiayan.reggie.entity.User;
 import com.chenjiayan.reggie.service.UserService;
+import com.chenjiayan.reggie.utils.EmailUtil;
 import com.chenjiayan.reggie.utils.ValidateCodeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.Map;
 
@@ -25,12 +24,21 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EmailUtil emailUtil;
+
     @PostMapping("/code")
     public R<String> sendCode(@RequestBody User user, HttpSession session){
-        if(StringUtils.isNotBlank(user.getPhone())){
+        if(StringUtils.isNotBlank(user.getEmail())){
             String code = String.valueOf(ValidateCodeUtils.generateValidateCode(4));
+            session.setAttribute(user.getEmail(),code);
             log.info("验证码为："+code);
-            session.setAttribute(user.getPhone(),code);
+            //发送验证码
+            emailUtil.sendMessage(
+                    user.getEmail(),
+                    "【菩提阁餐厅】验证码",
+                    "您好！本次验证码为 "+code+" ,请在5分钟内完成操作。如非本人操作，请忽略。");
+
             return R.success("验证码已发送");
         }
         return R.error("验证码发送失败");
@@ -38,27 +46,30 @@ public class UserController {
 
     @PostMapping("/login")
     public R<String> login(@RequestBody Map map, HttpSession session){
-        // 通过手机号获取session中保存的验证码
-        String phone = (String) map.get("phone");
-        String code = (String)session.getAttribute(phone);
+        // 通过邮箱获取session中保存的验证码
+        String email = (String) map.get("email");
+        System.out.println("###"+email);
+        String code = (String) session.getAttribute(email);
+        System.out.println("得到的的验证码为："+code);
         if(StringUtils.isBlank(code)){
             // 验证码为空
-            R.error("验证码输入错误！");
+            return R.error("验证码输入错误！");
         }
         String code1 = (String)map.get("code");
+        System.out.println("输入的验证码为："+code1);
         if(!code.equals(code1)){
             // 验证码输入错误
-            R.error("验证码输入错误！");
+            return R.error("验证码输入错误！");
         }
-        // 验证码正确 通过手机号查User 如果没有则创建
+        // 验证码正确 通过邮箱查User 如果没有则创建
 
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getPhone,phone);
+        queryWrapper.eq(User::getEmail,email);
         User user = userService.getOne(queryWrapper);
         if(user == null){
             log.info("新用户！");
             User user1 = new User();
-            user1.setPhone(phone);
+            user1.setEmail(email);
             userService.save(user1);
             session.setAttribute("user",user1.getId());
         }else{
